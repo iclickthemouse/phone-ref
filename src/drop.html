@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>phone-ref</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f2ee;--ink:#0d0d0f;--mute:#6b6b70;--line:#d6d4cd;--card:#fff;--blue:#003FCC;--blue-ink:#fff;--bad:#b42318;--tool:rgba(13,13,15,.82);--chip:#ecebe6}
+@media (prefers-color-scheme:dark){:root{--bg:#0e0f12;--ink:#ecebe6;--mute:#8d8d93;--line:#2a2b31;--card:#17181c;--blue:#3d74ff;--tool:rgba(40,41,46,.9);--chip:#23242a}}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-rows:minmax(0,1fr);gap:16px;padding:16px}
+@media (max-width:820px){body{grid-template-columns:1fr;grid-template-rows:auto;height:auto}#col{height:80vh}}
+button{font:inherit;color:inherit}
+#col{display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0}
+#well{position:relative;flex:1;min-height:260px;border:2px dashed var(--blue);border-radius:14px;overflow:hidden;background:var(--card);transition:background .12s}
+#well.empty{cursor:pointer}
+#well.has{border-style:solid;border-color:var(--line)}
+#well.over{background:var(--blue);border:2px solid var(--blue)}
+#well.over>*{opacity:.12}
+#well.over::after{content:"Let go";position:absolute;inset:0;display:grid;place-items:center;color:var(--blue-ink);font-size:28px;font-weight:600;pointer-events:none}
+#preview{position:absolute;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#well.has #preview{cursor:grab;background:repeating-conic-gradient(var(--bg) 0 25%,var(--card) 0 50%) 0 0/20px 20px}
+#preview.grabbing{cursor:grabbing!important}
+#preview img,#preview video{display:block;-webkit-user-drag:none}
+.hint{position:absolute;inset:0;display:grid;place-content:center;text-align:center;color:var(--mute);pointer-events:none;padding:20px}
+.hint b{display:block;color:var(--ink);font-size:20px;font-weight:600;margin-bottom:6px}
+#cap{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:12px;font-size:12px;pointer-events:none;z-index:2}
+#cap span{background:var(--tool);color:#fff;padding:3px 9px;border-radius:999px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:2px;background:var(--tool);color:#fff;border-radius:12px;padding:4px;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:2}
+.bar button{color:#fff;background:transparent;border:0;border-radius:8px;padding:5px 9px;cursor:pointer}
+.bar button:hover{background:rgba(255,255,255,.12)}
+.bar button.on{background:var(--blue)}
+.bar .zb{font-size:16px;line-height:1;width:30px}
+#pct{min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.bar .sep{width:1px;height:18px;background:rgba(255,255,255,.2);margin:0 5px}
+.bar label{display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;border-radius:8px}
+.bar label:hover{background:rgba(255,255,255,.12)}
+.bar input{accent-color:var(--blue);margin:0}
+#phone{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:1}
+#pframe{position:relative;border-radius:44px;overflow:hidden;background:#000;box-shadow:0 0 0 7px #111,0 0 0 8px #333,0 18px 50px rgba(0,0,0,.35)}
+#pframe iframe{position:absolute;left:0;top:0;width:390px;height:844px;border:0;transform-origin:0 0;pointer-events:none}
+#igNote{position:absolute;left:12px;bottom:12px;max-width:calc(50% - 200px);color:var(--mute);font-size:11.5px;z-index:2}
+#strip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px 10px;min-width:0}
+#shead{display:flex;align-items:center;gap:8px;margin-bottom:8px;position:relative}
+#sname{all:unset;cursor:text;font-weight:600;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px dashed transparent}
+#sname:hover{border-bottom-color:var(--mute)}
+#snameIn{font:inherit;font-weight:600;padding:1px 6px;border:1px solid var(--blue);border-radius:6px;background:var(--bg);color:var(--ink);width:220px}
+#scount{color:var(--mute);font-size:12px}
+#shead .sp{flex:1}
+.lnk{background:none;border:0;color:var(--blue);cursor:pointer;padding:2px 6px;border-radius:6px;font-size:12px}
+.lnk:hover{background:var(--chip)}
+#smenu{position:absolute;right:0;bottom:calc(100% + 6px);width:330px;max-height:320px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.18);padding:6px;z-index:5}
+#smenu button{display:flex;width:100%;justify-content:space-between;gap:10px;background:none;border:0;padding:7px 9px;border-radius:8px;cursor:pointer;text-align:left}
+#smenu button:hover{background:var(--chip)}
+#smenu button.on{color:var(--blue);font-weight:600}
+#smenu .c{color:var(--mute);white-space:nowrap}
+#thumbs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+#thumbs:empty::before{content:"History shows up here. Everything you send this session is kept.";color:var(--mute);font-size:12px;padding:16px 4px}
+.tile{position:relative;flex:0 0 auto;width:64px;height:64px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0;background:var(--chip);cursor:pointer}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile.on{border-color:var(--blue)}
+.tile .vid{position:absolute;left:4px;bottom:3px;color:#fff;font-size:10px;text-shadow:0 1px 2px #000}
+.tile .ext{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;color:var(--mute)}
+.tile .x{position:absolute;right:2px;top:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:18px;text-align:center;opacity:0}
+.tile:hover .x{opacity:1}
+.tile.missing{opacity:.4}
+aside{display:flex;flex-direction:column;gap:12px;overflow:auto;min-height:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;font-weight:600}
+#qrrow{display:flex;gap:12px;align-items:flex-start}
+#qr{width:118px;aspect-ratio:1;border-radius:8px;background:#fff;display:block;flex:0 0 auto}
+#url{font-size:13px;font-weight:600;word-break:break-all;color:var(--blue)}
+#alts{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+#alts button{all:unset;cursor:pointer;color:var(--mute);font-size:11.5px}#alts button:hover{color:var(--ink)}
+.status{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--line)}.dot.on{background:#12b76a}
+.seg{display:flex;background:var(--chip);border-radius:9px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:none;border-radius:7px;padding:6px 0;cursor:pointer;font-size:12px}
+.seg button.on{background:var(--blue);color:#fff}
+.field{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.row label{display:flex;gap:6px;align-items:center;white-space:nowrap;font-size:12px;cursor:pointer}
+.row input[type=checkbox]{accent-color:var(--blue);margin:0}
+button.b{font-weight:600;padding:7px 10px;border-radius:8px;border:1px solid var(--blue);background:var(--blue);color:var(--blue-ink);cursor:pointer}
+button.b.ghost{background:transparent;color:var(--blue)}
+.small{font-size:11.5px;color:var(--mute);margin-top:8px}
+kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px}
+#toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+#toast.show{opacity:1}#toast.bad{background:var(--bad);color:#fff}
+</style></head><body>
+<div id="col">
+  <main id="well" class="empty">
+    <div id="preview"></div>
+    <div class="hint" id="hint"><div><b>Drop an image or video</b>or click to pick &middot; or paste with <span class="pastekey">Ctrl+V</span></div></div>
+    <div id="phone" hidden><div id="pframe"></div></div>
+    <div id="igNote" hidden></div>
+    <div id="cap" hidden><span id="capname"></span><span id="capsize"></span></div>
+    <div id="tools" class="bar" hidden>
+      <button class="zb" data-z="0.8" title="Zoom out  ( - )">&minus;</button>
+      <span id="pct">100%</span>
+      <button class="zb" data-z="1.25" title="Zoom in  ( + )">+</button>
+      <span class="sep"></span>
+      <button data-m="fit" title="Fit the whole thing  ( 0 )">Fit</button>
+      <button data-m="fill" title="Fill the frame  ( F )">Fill</button>
+      <button data-m="one" title="Actual pixels: one image pixel per screen pixel  ( 1 )">1:1</button>
+      <span class="sep"></span>
+      <label title="Your phone copies this zoom and position"><input type="checkbox" id="follow"> Phone follows</label>
+      <button class="openBtn" title="Pick a file">Open&hellip;</button>
+    </div>
+    <input type="file" id="picker" accept="image/*,video/*" hidden>
+  </main>
+  <section id="strip">
+    <div id="shead">
+      <button id="sname" title="Click to rename this session"></button>
+      <span id="scount"></span>
+      <span class="sp"></span>
+      <button class="lnk" id="sessBtn">Sessions &#9662;</button>
+      <button class="lnk" id="newBtn" title="Start a fresh history">New session</button>
+      <button class="lnk" id="folderBtn" title="Open this session's folder">Folder</button>
+      <div id="smenu" hidden></div>
+    </div>
+    <div id="thumbs"></div>
+  </section>
+</div>
+<aside>
+  <section class="card">
+    <h2>Open on your phone</h2>
+    <div id="qrrow"><img id="qr" alt="QR code for the phone link"><div class="small" style="margin-top:0">Scan with the iPhone camera. Same Wi-Fi as this computer.<br><br>Then in Safari: Share &rarr; Add to Home Screen.</div></div>
+    <div id="url" style="margin-top:10px">&hellip;</div><div id="alts"></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="phones">No phone connected</span></div>
+  </section>
+  <section class="card">
+    <h2>IG preview</h2>
+    <div class="seg" id="igSeg"><button data-ig="off">Off</button><button data-ig="feed">Feed</button><button data-ig="reel">Reel</button><button data-ig="story">Story</button><button data-ig="grid">Grid</button></div>
+    <div class="row"><input class="field" id="handle" placeholder="your.handle" spellcheck="false" style="flex:1"><label><input type="checkbox" id="zones"> Safe zones</label></div>
+    <div class="small">Shows on your phone at real size, using Instagram's crop rules and where its buttons sit.</div>
+  </section>
+  <section class="card">
+    <h2>Auto-show new files</h2>
+    <input class="field" id="dir" placeholder="Folder path, e.g. ComfyUI\output" spellcheck="false">
+    <div class="row" style="margin-top:8px"><button class="b" id="watchBtn">Watch</button><button class="b ghost" id="stopBtn" hidden>Stop</button></div>
+    <div class="small" id="watchNote">Anything new saved in this folder shows up on your phone.</div>
+  </section>
+  <section class="card small" style="margin-top:0">
+    Scroll to zoom &middot; drag to pan &middot; double-click zooms<br>
+    <kbd>+</kbd> <kbd>-</kbd> zoom &middot; <kbd>0</kbd> fit &middot; <kbd>F</kbd> fill &middot; <kbd>1</kbd> actual pixels &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> history
+  </section>
+</aside>
+<div id="toast"></div>
+<script>/*__PANZOOM__*/</script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var well = $('well'), shown = '', port = location.port, S = null, items = [];
+var isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+if (isMac) document.querySelectorAll('.pastekey').forEach(function (e) { e.textContent = '⌘V'; });
+if (isMac) $('dir').placeholder = 'Folder path, e.g. ~/ComfyUI/output';
+var pz = PanZoom($('preview'));
+var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+var post = function (u, body) { return fetch(u, { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body || {}) }); };
+
+function toast(msg, bad) { var t = $('toast'); t.textContent = msg; t.className = 'show' + (bad ? ' bad' : ''); clearTimeout(toast.t); toast.t = setTimeout(function () { t.className = ''; }, 2600); }
+function size(b) { return b > 1e9 ? (b / 1e9).toFixed(2) + ' GB' : b > 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
+
+function setQR(addr) {
+  var u = 'http://' + addr + ':' + port;
+  $('qr').src = '/qr.svg?u=' + encodeURIComponent(u);
+  $('url').textContent = u;
+}
+fetch('/info').then(function (r) { return r.json(); }).then(function (info) {
+  if (!info.addresses.length) { $('url').textContent = 'No network found'; return; }
+  setQR(info.addresses[0].address);
+  info.addresses.slice(1).forEach(function (a) {
+    var b = document.createElement('button');
+    b.textContent = a.address + '  (' + (a.kind === 'tailscale' ? 'Tailscale' : a.name) + ')';
+    b.onclick = function () { setQR(a.address); };
+    $('alts').appendChild(b);
+  });
+});
+
+// ----- zoom toolbar -----
+var sizeText = '';
+pz.onChange = function (i) {
+  $('pct').textContent = i.pct + '%';
+  var bs = document.querySelectorAll('#tools [data-m]');
+  for (var k = 0; k < bs.length; k++) bs[k].classList.toggle('on', bs[k].getAttribute('data-m') === i.mode);
+  $('capsize').textContent = (i.w ? i.w + '×' + i.h + ' · ' : '') + sizeText;
+  sendView(i);
+};
+document.querySelectorAll('#tools [data-m]').forEach(function (b) { b.onclick = function () { pz.set(b.getAttribute('data-m')); }; });
+document.querySelectorAll('#tools [data-z]').forEach(function (b) { b.onclick = function () { pz.zoomBy(Number(b.getAttribute('data-z'))); }; });
+document.querySelectorAll('.openBtn').forEach(function (b) { b.onclick = function () { $('picker').click(); }; });
+try { $('follow').checked = localStorage.getItem('follow') === '1'; } catch (e) {}
+$('follow').onchange = function () {
+  try { localStorage.setItem('follow', this.checked ? '1' : '0'); } catch (e) {}
+  if (this.checked) { sendView(pz.info()); toast('Phone follows your zoom'); }
+};
+var viewTimer = 0, viewNext = null;
+function sendView(i) {
+  if (!$('follow').checked || !shown || !pz.ready() || igMode() !== 'off') return;
+  viewNext = i;
+  if (!viewTimer) viewTimer = setTimeout(function () {
+    viewTimer = 0;
+    var n = viewNext; viewNext = null; if (!n) return;
+    post('/view-state', { v: shown, z: n.z, cx: n.cx, cy: n.cy }).catch(function () {});
+  }, 40);
+}
+
+// ----- history / sessions -----
+var want = '', wantT = 0;   // last item asked for, so fast key repeats don't step from a stale spot
+function step(d) {
+  if (!items.length) return;
+  var base = want || shown;
+  var i = items.findIndex(function (x) { return x.key === base; });
+  var j = Math.max(0, Math.min(items.length - 1, (i < 0 ? items.length - 1 : i + d)));
+  if (!items[j] || items[j].key === base) return;
+  want = items[j].key; clearTimeout(wantT); wantT = setTimeout(function () { want = ''; }, 1500);
+  post('/select', { id: items[j].id });
+}
+function renderStrip(sess) {
+  $('sname').textContent = sess.name;
+  $('scount').textContent = items.length ? items.length + (items.length === 1 ? ' item' : ' items') : '';
+  var box = $('thumbs'), html = '';
+  items.forEach(function (it) {
+    var inner = it.thumb ? '<img src="' + it.thumb + '" alt="" loading="lazy">'
+      : it.kind === 'image' && !it.missing ? '<img src="' + it.url + '" alt="" loading="lazy">'
+      : '<span class="ext">' + esc((it.name.split('.').pop() || '').toUpperCase()) + '</span>';
+    html += '<button class="tile' + (it.key === shown ? ' on' : '') + (it.missing ? ' missing' : '') + '" data-id="' + it.id + '" title="' + esc(it.name) + (it.missing ? ' (file moved or deleted)' : '') + '">' + inner +
+      (it.kind === 'video' ? '<span class="vid">&#9654;</span>' : '') + '<span class="x" data-x="' + it.id + '" title="Remove from history">&times;</span></button>';
+  });
+  if (box.getAttribute('data-sig') !== html) {
+    var atEnd = box.scrollLeft + box.clientWidth >= box.scrollWidth - 8;
+    box.innerHTML = html; box.setAttribute('data-sig', html);
+    var on = box.querySelector('.tile.on');
+    if (on) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    else if (atEnd) box.scrollLeft = box.scrollWidth;
+  }
+}
+$('thumbs').addEventListener('click', function (e) {
+  var x = e.target.closest('[data-x]');
+  if (x) { e.stopPropagation(); post('/remove', { id: Number(x.getAttribute('data-x')) }); return; }
+  var t = e.target.closest('.tile'); if (t) post('/select', { id: Number(t.getAttribute('data-id')) });
+});
+$('sname').onclick = function () {
+  var btn = this, inp = document.createElement('input'), fin = false;
+  inp.id = 'snameIn'; inp.value = S ? S.name : '';
+  btn.replaceWith(inp); inp.focus(); inp.select();
+  var done = function (save) {
+    if (fin) return; fin = true;
+    if (save && inp.value.trim() && (!S || inp.value.trim() !== S.name)) { btn.textContent = inp.value.trim(); post('/session/rename', { name: inp.value.trim() }); }
+    inp.replaceWith(btn);
+  };
+  inp.onkeydown = function (e) { if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); };
+  inp.onblur = function () { done(true); };
+};
+$('newBtn').onclick = function () { post('/session/new').then(function () { toast('New session'); }); };
+$('folderBtn').onclick = function () { post('/open-folder'); };
+$('sessBtn').onclick = function (e) {
+  e.stopPropagation();
+  var m = $('smenu');
+  if (!m.hidden) { m.hidden = true; return; }
+  fetch('/sessions').then(function (r) { return r.json(); }).then(function (d) {
+    m.innerHTML = d.sessions.map(function (s) {
+      return '<button data-s="' + esc(s.id) + '" class="' + (s.id === d.current ? 'on' : '') + '"><span>' + esc(s.name) + '</span><span class="c">' + s.count + ' &middot; ' + new Date(s.updated).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + '</span></button>';
+    }).join('') || '<div class="small">No sessions yet</div>';
+    m.hidden = false;
+  });
+};
+$('smenu').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-s]'); if (!b) return;
+  post('/session/open', { id: b.getAttribute('data-s') }); $('smenu').hidden = true;
+});
+document.addEventListener('click', function (e) { if (!e.target.closest('#smenu')) $('smenu').hidden = true; });
+
+// thumbnails are made here (the PC's browser decodes everything) and stored with the session
+var thumbBusy = false, thumbFailed = {};
+function queueThumbs() {
+  if (thumbBusy) return;
+  var it = items.filter(function (i) { return !i.thumb && !i.missing && !thumbFailed[i.key]; }).pop();
+  if (!it) return;
+  thumbBusy = true;
+  makeThumb(it, function (ok) { if (!ok) thumbFailed[it.key] = 1; thumbBusy = false; setTimeout(queueThumbs, 50); });
+}
+function makeThumb(it, done) {
+  var finished = false, t = setTimeout(function () { finish(false); }, 20000);
+  function finish(ok) { if (finished) return; finished = true; clearTimeout(t); done(ok); }
+  function draw(src, w, h) {
+    if (!w || !h) return finish(false);
+    var k = Math.min(1, 480 / Math.max(w, h)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    try { c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); } catch (e) { return finish(false); }
+    c.toBlob(function (b) {
+      if (!b) return finish(false);
+      fetch('/thumb/' + it.key, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: b }).then(function (r) { finish(r.ok); }).catch(function () { finish(false); });
+    }, 'image/jpeg', 0.82);
+  }
+  if (it.kind === 'video') {
+    var v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.playsInline = true;
+    v.onloadedmetadata = function () { v.currentTime = Math.min(0.5, (v.duration || 1) / 3); };
+    v.onseeked = function () { draw(v, v.videoWidth, v.videoHeight); v.removeAttribute('src'); v.load(); };
+    v.onerror = function () { finish(false); };
+    v.src = it.url;
+  } else {
+    var im = new Image();
+    im.onload = function () { draw(im, im.naturalWidth, im.naturalHeight); };
+    im.onerror = function () { finish(false); };
+    im.src = it.url;
+  }
+}
+
+// ----- IG preview: the same page the phone shows, at phone size -----
+var IG = { mode: 'off' };
+function igMode() { return IG.mode || 'off'; }
+function renderIG(ig) {
+  IG = ig;
+  document.querySelectorAll('#igSeg [data-ig]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-ig') === ig.mode); });
+  if (document.activeElement !== $('handle')) $('handle').value = ig.handle === 'your.handle' ? '' : ig.handle;
+  $('zones').checked = !!ig.zones;
+  var on = ig.mode !== 'off';
+  if (on && !$('pframe').firstChild) {
+    var f = document.createElement('iframe'); f.src = '/view?embed=1'; f.title = 'Phone preview'; f.tabIndex = -1;
+    $('pframe').appendChild(f);
+  }
+  $('phone').hidden = !on;
+  $('igNote').hidden = !on;
+  $('igNote').textContent = on ? 'Phone preview (390×844, like an iPhone 13–15). Your phone shows it at real size.' : '';
+  layoutPhone();
+  updateToolsVisibility();
+  var v = $('preview').querySelector('video'); if (v) { if (on) v.pause(); else v.play().catch(function () {}); }
+}
+function layoutPhone() {
+  if ($('phone').hidden) return;
+  var W = well.clientWidth - 40, H = well.clientHeight - 60, k = Math.min(1, H / 844, W / 390);
+  var fr = $('pframe'); fr.style.width = 390 * k + 'px'; fr.style.height = 844 * k + 'px'; fr.style.borderRadius = 46 * k + 'px';
+  var f = fr.firstChild; if (f) f.style.transform = 'scale(' + k + ')';
+}
+window.addEventListener('resize', layoutPhone);
+document.querySelectorAll('#igSeg [data-ig]').forEach(function (b) { b.onclick = function () { post('/ig', { mode: b.getAttribute('data-ig') }); }; });
+$('zones').onchange = function () { post('/ig', { zones: this.checked }); };
+$('handle').addEventListener('change', function () { post('/ig', { handle: this.value.trim() }); });
+$('handle').addEventListener('keydown', function (e) { if (e.key === 'Enter') this.blur(); });
+function updateToolsVisibility() { $('tools').hidden = !(shown && pz.ready() && igMode() === 'off'); }
+
+// ----- keyboard -----
+window.addEventListener('keydown', function (e) {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key;
+  if (k === 'ArrowLeft') step(-1);
+  else if (k === 'ArrowRight') step(1);
+  else if (!pz.ready() || igMode() !== 'off') return;
+  else if (k === '+' || k === '=') pz.zoomBy(1.25);
+  else if (k === '-' || k === '_') pz.zoomBy(0.8);
+  else if (k === '0') pz.set('fit');
+  else if (k === '1') pz.set('one');
+  else if (k === 'f' || k === 'F') pz.set('fill');
+  else return;
+  e.preventDefault();
+});
+
+// ----- live state -----
+var hintHTML = $('hint').innerHTML;
+function render(s) {
+  S = s.session; items = S.items;
+  var n = s.phones;
+  $('dot').className = 'dot' + (n ? ' on' : '');
+  $('phones').textContent = n ? (n === 1 ? '1 phone watching' : n + ' phones watching') : 'No phone connected';
+  $('stopBtn').hidden = !s.watch;
+  if (s.watch && document.activeElement !== $('dir')) $('dir').value = s.watch;
+  $('watchNote').textContent = s.watch ? 'Watching. New files show up on your phone.' : 'Anything new saved in this folder shows up on your phone.';
+  var it = s.item;
+  if (!it) {
+    pz.clear(); $('preview').replaceChildren(); $('hint').innerHTML = hintHTML; $('hint').hidden = false;
+    $('cap').hidden = true; well.className = 'empty'; shown = '';
+  } else if (it.key !== shown) {
+    shown = it.key;
+    if (want === shown) want = '';
+    well.className = 'has';
+    $('hint').hidden = true; $('hint').innerHTML = hintHTML;
+    $('cap').hidden = false;
+    $('capname').textContent = it.name;
+    sizeText = size(it.size);
+    $('capsize').textContent = sizeText;
+    pz.clear();
+    var el;
+    var ready = function (w, h) { if (shown !== it.key) return; pz.load(el, w, h, 'fit'); updateToolsVisibility(); };
+    if (it.kind === 'video') {
+      el = document.createElement('video'); el.muted = true; el.autoplay = igMode() === 'off'; el.loop = true; el.playsInline = true;
+      el.onloadedmetadata = function () { ready(el.videoWidth, el.videoHeight); };
+    } else {
+      el = document.createElement('img'); el.alt = ''; el.draggable = false;
+      el.onload = function () { ready(el.naturalWidth, el.naturalHeight); };
+    }
+    el.style.visibility = 'hidden';
+    el.onerror = function () { if (shown !== it.key) return; $('preview').replaceChildren(); $('hint').hidden = false; $('hint').innerHTML = '<div><b>It\'s on your phone</b>' + (it.missing ? 'The original file was moved or deleted.' : 'This browser can\'t preview this format.') + '</div>'; };
+    $('preview').replaceChildren(el);
+    el.src = it.url;
+  }
+  updateToolsVisibility();
+  renderStrip(S);
+  renderIG(s.ig);
+  queueThumbs();
+}
+function connect() {
+  var es = new EventSource('/events');
+  es.onmessage = function (e) { render(JSON.parse(e.data)); };
+}
+connect();
+
+// ----- sending -----
+function pick(files) {
+  for (var i = 0; i < (files || []).length; i++) { var f = files[i]; if (/^(image|video)\//.test(f.type) || /\.(png|jpe?g|gif|webp|avif|heic|heif|tiff?|bmp|svg|jxl|mp4|m4v|mov|webm|mkv)$/i.test(f.name)) return f; }
+  return null;
+}
+function busy(on) { well.style.opacity = on ? .6 : 1; }
+function pushFile(f) {
+  busy(true);
+  fetch('/push', { method: 'PUT', headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-Name': encodeURIComponent(f.name || 'pasted') }, body: f })
+    .then(function (r) { return r.ok ? null : r.text(); })
+    .then(function (err) { busy(false); if (err) toast(err, true); })
+    .catch(function (e) { busy(false); toast('Send failed: ' + e.message, true); });
+}
+function pushUrl(u) {
+  if (/^data:/i.test(u)) { return fetch(u).then(function (r) { return r.blob(); }).then(function (b) { pushFile(new File([b], 'dropped', { type: b.type })); }); }
+  busy(true);
+  post('/push-url', u)
+    .then(function (r) { return r.ok ? null : r.text(); })
+    .then(function (err) { busy(false); if (err) toast(err, true); })
+    .catch(function (e) { busy(false); toast('Send failed: ' + e.message, true); });
+}
+var depth = 0;
+window.addEventListener('dragenter', function (e) { e.preventDefault(); depth++; well.classList.add('over'); });
+window.addEventListener('dragover', function (e) { e.preventDefault(); });
+window.addEventListener('dragleave', function () { if (--depth <= 0) { depth = 0; well.classList.remove('over'); } });
+window.addEventListener('drop', function (e) {
+  e.preventDefault(); depth = 0; well.classList.remove('over');
+  var dt = e.dataTransfer, f = pick(dt.files);
+  if (f) return pushFile(f);
+  var links = (dt.getData('text/uri-list') || dt.getData('text/plain') || '').split(/\r?\n/).map(function (s) { return s.trim(); });
+  var u = links.filter(function (s) { return /^(https?|file|data):/i.test(s); })[0];
+  if (u) return pushUrl(u);
+  toast('That drop had no image or video in it', true);
+});
+window.addEventListener('paste', function (e) {
+  if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  var f = pick(e.clipboardData.files);
+  if (f) return pushFile(f);
+  var t = (e.clipboardData.getData('text') || '').trim();
+  if (/^(https?|file):/i.test(t)) pushUrl(t);
+});
+well.addEventListener('click', function () { if (!shown) $('picker').click(); });
+$('picker').addEventListener('change', function () { var f = $('picker').files[0]; if (f) pushFile(f); $('picker').value = ''; });
+
+function watch(dir) {
+  post('/watch', dir).then(function (r) { return r.ok ? null : r.text(); }).then(function (err) { if (err) toast(err, true); else toast(dir ? 'Watching folder' : 'Stopped watching'); });
+}
+$('watchBtn').onclick = function () { var d = $('dir').value.trim(); if (d) watch(d); };
+$('dir').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('watchBtn').click(); });
+$('stopBtn').onclick = function () { watch(''); $('dir').value = ''; };
+</script></body></html>

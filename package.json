@@ -1,0 +1,16 @@
+{
+  "name": "phone-ref",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Drop an image or video on your computer, see it instantly on your iPhone. Zoom, history, IG preview.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "author": "Mike Clark (https://mikeclark.design)",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node build.mjs && node dist/phone-ref.mjs",
+    "build:win": "node build.mjs && bun build --compile --target=bun-windows-x64 dist/phone-ref.mjs --outfile dist/phone-ref.exe",
+    "build:mac": "node build.mjs && bun build --compile --target=bun-darwin-arm64 dist/phone-ref.mjs --outfile dist/phone-ref-mac-arm64 && bun build --compile --target=bun-darwin-x64 dist/phone-ref.mjs --outfile dist/phone-ref-mac-intel"
+  }
+}

@@ -1,0 +1,18 @@
+Copyright (c) 2026 Mike Clark. All rights reserved.
+
+This repository is published so the source can be read and reviewed. No license
+is granted to copy, modify, merge, publish, distribute, sublicense, or sell the
+software or any part of it, or to create derivative works, without prior
+written permission from the copyright holder.
+
+You may download and run the official release builds for your own personal use.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THE
+SOFTWARE.
+
+Third-party code: vendor/qrcode-generator.min.js is "QR Code Generator for
+JavaScript", Copyright (c) 2009 Kazuhiko Arase, licensed under the MIT license
+(https://opensource.org/licenses/MIT). That file remains under its own license.
