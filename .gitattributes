@@ -1,0 +1,4 @@
+# Count the inline page scripts as JavaScript on GitHub
+*.html linguist-language=JavaScript
+vendor/** linguist-vendored
+media/** linguist-documentation
